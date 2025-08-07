@@ -41,15 +41,15 @@ const constraintSchema = new mongoose.Schema({
 const solutionSchema = new mongoose.Schema({
   approach: {
     type: String,
-    required: [true, 'Solution approach is required']
+    default: 'To be determined'
   },
   timeComplexity: {
     type: String,
-    required: [true, 'Time complexity is required']
+    default: 'O(n)'
   },
   spaceComplexity: {
     type: String,
-    required: [true, 'Space complexity is required']
+    default: 'O(1)'
   },
   code: {
     type: String,
@@ -92,7 +92,7 @@ const problemSchema = new mongoose.Schema({
   }],
   source: {
     type: String,
-    enum: ['codeforces', 'hackerrank', 'custom'],
+    enum: ['leetcode', 'codeforces', 'hackerrank', 'custom', 'kattis'],
     default: 'custom'
   },
   externalId: {

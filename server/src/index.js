@@ -34,6 +34,9 @@ if (!process.env.MONGODB_URI) {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB Atlas');
+    
+    // Demo data setup (commented out for now)
+    // console.log('Demo data will be created on first login');
   })
   .catch((error) => {
     console.error('❌ MongoDB connection error:', error);
@@ -43,11 +46,15 @@ mongoose.connect(process.env.MONGODB_URI)
 const authRoutes = require('./routes/auth');
 const problemRoutes = require('./routes/problems');
 const submissionRoutes = require('./routes/submissions');
+const analyticsRoutes = require('./routes/analytics');
+const importRoutes = require('./routes/import');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/import', importRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -60,7 +67,9 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       health: '/api/health',
       problems: '/api/problems',
-      submissions: '/api/submissions'
+      submissions: '/api/submissions',
+      analytics: '/api/analytics',
+      import: '/api/import'
     }
   });
 });
@@ -103,8 +112,11 @@ const startServer = async () => {
       console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
       console.log(`📊 Problems endpoint at http://localhost:${PORT}/api/problems`);
       console.log(`💻 Submissions endpoint at http://localhost:${PORT}/api/submissions`);
+      console.log(`📈 Analytics endpoint at http://localhost:${PORT}/api/analytics`);
       console.log(`🔐 Auth endpoints at http://localhost:${PORT}/api/auth`);
-      console.log('Press Ctrl+C to stop the server');
+          
+    console.log(`📥 Import endpoints at http://localhost:${PORT}/api/import`);
+    console.log('Press Ctrl+C to stop the server');
     });
 
     // Handle graceful shutdown

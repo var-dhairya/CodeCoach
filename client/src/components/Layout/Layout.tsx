@@ -8,8 +8,9 @@ import {
   UserIcon,
   Bars3Icon,
   XMarkIcon,
-  Cog6ToothIcon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  LightBulbIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 interface LayoutProps {
@@ -24,6 +25,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Problems', href: '/problems', icon: CodeBracketIcon },
+  
+    { name: 'Import Kattis', href: '/import/kattis', icon: PlusIcon },
     { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
     { name: 'Profile', href: '/profile', icon: UserIcon },
   ];
@@ -156,14 +159,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              <button
-                type="button"
-                className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
-              >
-                <Cog6ToothIcon className="h-6 w-6" />
-              </button>
-            </div>
           </div>
         </div>
 

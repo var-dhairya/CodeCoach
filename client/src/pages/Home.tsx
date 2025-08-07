@@ -47,12 +47,23 @@ const Home: React.FC = () => {
             </div>
             <div className="flex items-center space-x-4">
               {user ? (
-                <Link
-                  to="/dashboard"
-                  className="btn-primary"
-                >
-                  Go to Dashboard
-                </Link>
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="btn-primary"
+                  >
+                    Go to Dashboard
+                  </Link>
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('token');
+                      window.location.reload();
+                    }}
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <>
                   <Link

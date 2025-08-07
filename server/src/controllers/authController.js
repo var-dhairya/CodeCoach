@@ -136,7 +136,7 @@ const login = async (req, res) => {
 // Get user profile
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     
     if (!user) {
       return res.status(404).json({
@@ -175,7 +175,7 @@ const updateProfile = async (req, res) => {
     if (preferences) updateData.preferences = { ...req.user.preferences, ...preferences };
 
     const user = await User.findByIdAndUpdate(
-      req.user.userId,
+      req.user._id,
       updateData,
       { new: true, runValidators: true }
     ).select('-password');
@@ -209,7 +209,7 @@ const updateProfile = async (req, res) => {
 const logout = async (req, res) => {
   try {
     // Update last active
-    await User.findByIdAndUpdate(req.user.userId, {
+    await User.findByIdAndUpdate(req.user._id, {
       'profile.lastActive': new Date()
     });
 

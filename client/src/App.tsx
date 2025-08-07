@@ -11,6 +11,8 @@ import ProblemDetail from './pages/ProblemDetail';
 import Analysis from './pages/Analysis';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
+
+import ImportKattis from './pages/ImportKattis';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 function App() {
@@ -69,6 +71,15 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Analytics />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            
+            
+            <Route path="/import/kattis" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ImportKattis />
                 </Layout>
               </ProtectedRoute>
             } />

@@ -5,6 +5,64 @@ const User = require('../models/User');
 const { validateCode } = require('../services/codeValidator');
 const { generateCodeReview, generateOptimalSolution } = require('../services/aiService');
 
+// Helper function to update user statistics
+async function updateUserStats(userId, problemId, score, attempts) {
+  try {
+    const user = await User.findById(userId);
+    if (!user) return;
+
+    // Initialize analytics object if it doesn't exist
+    if (!user.analytics) {
+      user.analytics = {
+        problemsSolved: 0,
+        totalSubmissions: 0,
+        averageScore: 0,
+        lastSolvedAt: new Date(),
+        streakDays: 0,
+        topicProgress: {}
+      };
+    }
+
+    // Update basic stats
+    const userSubmissions = await Submission.find({ userId });
+    const acceptedSubmissions = userSubmissions.filter(s => s.status === 'accepted');
+    const uniqueProblems = [...new Set(acceptedSubmissions.map(s => s.problemId.toString()))];
+    
+    user.analytics.problemsSolved = uniqueProblems.length;
+    user.analytics.totalSubmissions = userSubmissions.length;
+    user.analytics.lastSolvedAt = new Date();
+    
+    // Calculate average score
+    const totalScore = acceptedSubmissions.reduce((sum, sub) => sum + (sub.score || 75), 0);
+    user.analytics.averageScore = acceptedSubmissions.length > 0 
+      ? Math.round(totalScore / acceptedSubmissions.length) 
+      : 0;
+
+    // Update streak (simplified calculation)
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
+    const lastSolved = user.analytics.lastSolvedAt.toDateString();
+    
+    if (lastSolved === today) {
+      // Already solved today, maintain streak
+    } else if (lastSolved === yesterday) {
+      // Solved yesterday, increment streak
+      user.analytics.streakDays = (user.analytics.streakDays || 0) + 1;
+    } else {
+      // Gap in solving, reset streak
+      user.analytics.streakDays = 1;
+    }
+
+    await user.save();
+    console.log(`📊 Updated stats for user ${userId}: ${user.analytics.problemsSolved} problems solved`);
+    
+  } catch (error) {
+    console.error('Error in updateUserStats:', error);
+    throw error;
+  }
+}
+
+
 // Submit code solution
 const submitSolution = async (req, res) => {
   try {
@@ -140,6 +198,29 @@ const submitSolution = async (req, res) => {
         'metadata.totalSolved': allPassed ? 1 : 0
       }
     });
+
+    // Update user's topic strengths if problem was solved
+    if (allPassed && req.user?.id) {
+      try {
+        // Calculate submission score based on performance
+        const score = Math.max(60, 100 - (totalExecutionTime / 100)); // Base score with time penalty
+        const attempts = await Submission.countDocuments({ userId, problemId });
+        
+        // Update user analytics in real-time
+        console.log(`🎉 User ${req.user.id} solved problem ${problemId} with score ${score}`);
+        
+        // Update user's profile with latest stats (optional enhancement)
+        try {
+          await updateUserStats(req.user.id, problemId, score, attempts);
+        } catch (statsError) {
+          console.error('Error updating user stats:', statsError);
+          // Don't fail submission if stats update fails
+        }
+      } catch (error) {
+        console.error('Error updating user strengths:', error);
+        // Don't fail the submission if strength update fails
+      }
+    }
 
     res.status(201).json({
       success: true,

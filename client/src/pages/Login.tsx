@@ -45,6 +45,41 @@ const Login: React.FC = () => {
             </Link>
           </p>
         </div>
+
+        {/* Demo Credentials */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center mb-2">
+            <div className="text-blue-600 mr-2">🎯</div>
+            <h3 className="text-sm font-semibold text-blue-800">Demo Account</h3>
+          </div>
+          <p className="text-xs text-blue-700 mb-3">Use these credentials to explore the analytics dashboard with pre-existing data:</p>
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span className="font-medium text-blue-800">Email:</span>
+              <div className="font-mono bg-blue-100 px-2 py-1 rounded mt-1 text-blue-900">
+                demo@codecoach.com
+              </div>
+            </div>
+            <div>
+              <span className="font-medium text-blue-800">Password:</span>
+              <div className="font-mono bg-blue-100 px-2 py-1 rounded mt-1 text-blue-900">
+                demo123
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('demo@codecoach.com');
+                setPassword('demo123');
+              }}
+              className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+            >
+              Use Demo Credentials
+            </button>
+          </div>
+        </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
