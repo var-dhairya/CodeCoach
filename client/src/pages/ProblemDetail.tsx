@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CodeEditor from '../components/CodeEditor/CodeEditor';
@@ -173,13 +173,7 @@ int main() {
 }`
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchProblem();
-    }
-  }, [id]);
-
-  const fetchProblem = async () => {
+  const fetchProblem = useCallback(async () => {
     if (!id) {
       setError('Problem ID not found');
       setLoading(false);
@@ -202,7 +196,13 @@ int main() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchProblem();
+    }
+  }, [id, fetchProblem]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

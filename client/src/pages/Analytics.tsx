@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { API_ENDPOINTS } from '../config/api';
 import {
   ChartBarIcon,
@@ -20,17 +19,7 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
-  Area,
-  AreaChart
+  Tooltip
 } from 'recharts';
 
 interface AnalyticsData {
@@ -74,7 +63,6 @@ interface AnalyticsData {
 }
 
 const Analytics: React.FC = () => {
-  const { user } = useAuth();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

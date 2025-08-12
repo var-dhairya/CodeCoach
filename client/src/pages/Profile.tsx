@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   UserIcon,
@@ -8,7 +8,6 @@ import {
   TrophyIcon,
   FireIcon,
   ClockIcon,
-  CogIcon,
   PencilIcon,
   CheckIcon,
   XMarkIcon
