@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://code-coach-backend.vercel.app'
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? process.env.REACT_APP_API_URL || ''
   : process.env.REACT_APP_API_URL || 'http://192.168.56.1:5000';
 
 export const API_ENDPOINTS = {
