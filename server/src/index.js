@@ -65,7 +65,6 @@ app.get('/', (req, res) => {
     database: 'connected',
     endpoints: {
       auth: '/api/auth',
-      health: '/api/health',
       problems: '/api/problems',
       submissions: '/api/submissions',
       analytics: '/api/analytics',
@@ -109,9 +108,7 @@ const startServer = async () => {
     const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 API available at http://localhost:${PORT}`);
-      console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
       console.log(`📊 Problems endpoint at http://localhost:${PORT}/api/problems`);
-      console.log(`💻 Submissions endpoint at http://localhost:${PORT}/api/submissions`);
       console.log(`📈 Analytics endpoint at http://localhost:${PORT}/api/analytics`);
       console.log(`🔐 Auth endpoints at http://localhost:${PORT}/api/auth`);
           
