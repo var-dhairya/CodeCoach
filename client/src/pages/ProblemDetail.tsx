@@ -188,7 +188,8 @@ int main() {
     
     try {
       setLoading(true);
-      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
+      const safeId = id!;
+      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(safeId));
       
       if (response.data.success) {
         setProblem(response.data.data.problem);
