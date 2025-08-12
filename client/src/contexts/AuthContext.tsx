@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 interface User {
   id: string;
@@ -70,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuth = async () => {
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5000/api/auth/profile');
+          const response = await axios.get(API_ENDPOINTS.PROFILE);
           setUser(response.data.data.user);
         } catch (error) {
           console.error('Auth check failed:', error);
@@ -86,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post(API_ENDPOINTS.LOGIN, {
         email,
         password
       });
@@ -102,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      const response = await axios.post(API_ENDPOINTS.REGISTER, {
         username,
         email,
         password
@@ -126,7 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updateProfile = async (data: Partial<User>) => {
     try {
-      const response = await axios.put('http://localhost:5000/api/auth/profile', data);
+      const response = await axios.put(API_ENDPOINTS.PROFILE, data);
       setUser(response.data.data.user);
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Profile update failed');

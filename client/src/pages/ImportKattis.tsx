@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_ENDPOINTS } from '../config/api';
 import { 
   PlusIcon, 
   ExclamationTriangleIcon, 
@@ -50,7 +51,7 @@ const ImportKattis: React.FC = () => {
       // Try the protected endpoint first
       let response;
       try {
-        response = await axios.post('http://localhost:5000/api/import/kattis', 
+        response = await axios.post(API_ENDPOINTS.IMPORT_KATTIS, 
           { url: url.trim() },
           {
             headers: {
@@ -64,7 +65,7 @@ const ImportKattis: React.FC = () => {
         console.log('Auth error:', authError.response?.data);
         
         // If auth fails, try the test endpoint
-        response = await axios.post('http://localhost:5000/api/import/kattis/test', 
+        response = await axios.post(API_ENDPOINTS.IMPORT_KATTIS_TEST, 
           { url: url.trim() },
           {
             headers: {

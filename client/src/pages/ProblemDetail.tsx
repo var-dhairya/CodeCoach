@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CodeEditor from '../components/CodeEditor/CodeEditor';
 import SubmissionResults from '../components/SubmissionResults/SubmissionResults';
+import { API_ENDPOINTS } from '../config/api';
 
 interface Problem {
   _id: string;
@@ -181,7 +182,7 @@ int main() {
   const fetchProblem = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<ProblemResponse>(`http://localhost:5000/api/problems/${id}`);
+      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
       
       if (response.data.success) {
         setProblem(response.data.data.problem);
@@ -222,7 +223,7 @@ int main() {
 
     try {
       setSubmitting(true);
-      const response = await axios.post('http://localhost:5000/api/submissions', {
+      const response = await axios.post(API_ENDPOINTS.SUBMISSIONS, {
         problemId: id,
         code,
         language

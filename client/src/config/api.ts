@@ -1,7 +1,21 @@
 // API Configuration
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_API_URL || 'https://your-vercel-backend-url.vercel.app'
-  : 'http://localhost:5000';
+const getApiBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.REACT_APP_API_URL || 'https://your-vercel-backend-url.vercel.app';
+  }
+  
+  // For development, detect if we're accessing via network IP
+  const hostname = window.location.hostname;
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    // We're accessing via network IP, use the same hostname for API
+    return `http://${hostname}:5000`;
+  }
+  
+  // Local development
+  return 'http://localhost:5000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   // Auth endpoints
