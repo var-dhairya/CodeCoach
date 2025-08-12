@@ -180,9 +180,15 @@ int main() {
   }, [id]);
 
   const fetchProblem = async () => {
+    if (!id) {
+      setError('Problem ID not found');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
-              const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
+      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
       
       if (response.data.success) {
         setProblem(response.data.data.problem);
@@ -218,6 +224,11 @@ int main() {
   const handleSubmitSolution = async () => {
     if (!code.trim()) {
       alert('Please write some code before submitting');
+      return;
+    }
+
+    if (!id) {
+      alert('Problem ID not found');
       return;
     }
 
