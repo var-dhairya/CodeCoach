@@ -182,7 +182,7 @@ int main() {
   const fetchProblem = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
+              const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
       
       if (response.data.success) {
         setProblem(response.data.data.problem);

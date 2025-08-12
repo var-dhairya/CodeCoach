@@ -105,15 +105,15 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📱 API available at http://localhost:${PORT}`);
-      console.log(`📊 Problems endpoint at http://localhost:${PORT}/api/problems`);
-      console.log(`📈 Analytics endpoint at http://localhost:${PORT}/api/analytics`);
-      console.log(`🔐 Auth endpoints at http://localhost:${PORT}/api/auth`);
-          
-    console.log(`📥 Import endpoints at http://localhost:${PORT}/api/import`);
-    console.log('Press Ctrl+C to stop the server');
+      console.log(`🌐 Network API available at http://192.168.56.1:${PORT}`);
+      console.log(`📊 Problems endpoint at http://192.168.56.1:${PORT}/api/problems`);
+      console.log(`📈 Analytics endpoint at http://192.168.56.1:${PORT}/api/analytics`);
+      console.log(`🔐 Auth endpoints at http://192.168.56.1:${PORT}/api/auth`);
+      console.log(`📥 Import endpoints at http://192.168.56.1:${PORT}/api/import`);
+      console.log('Press Ctrl+C to stop the server');
     });
 
     // Handle graceful shutdown
