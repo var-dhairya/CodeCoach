@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CodeEditor from '../components/CodeEditor/CodeEditor';
@@ -173,16 +173,17 @@ int main() {
 }`
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchProblem();
+  const fetchProblem = useCallback(async () => {
+    if (!id) {
+      setError('Problem ID not found');
+      setLoading(false);
+      return;
     }
-  }, [id]);
-
-  const fetchProblem = async () => {
+    
     try {
       setLoading(true);
-      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(id));
+      const safeId = id!;
+      const response = await axios.get<ProblemResponse>(API_ENDPOINTS.PROBLEM_DETAIL(safeId));
       
       if (response.data.success) {
         setProblem(response.data.data.problem);
@@ -195,7 +196,13 @@ int main() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchProblem();
+    }
+  }, [id, fetchProblem]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -218,6 +225,11 @@ int main() {
   const handleSubmitSolution = async () => {
     if (!code.trim()) {
       alert('Please write some code before submitting');
+      return;
+    }
+
+    if (!id) {
+      alert('Problem ID not found');
       return;
     }
 
