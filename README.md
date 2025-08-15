@@ -1,123 +1,256 @@
-<<<<<<< HEAD
 # CodeCoach - AI-Powered Coding Practice Platform
 
-A full-stack MERN application that helps developers practice coding problems with AI-powered code reviews and personalized recommendations.
+A comprehensive platform for practicing coding problems with AI-powered code review and analysis.
 
-## Features
+## 🚀 Features
 
-### ✅ Core Features
-- **Code Validation & Testing**: Submit code and get instant feedback with AI-powered validation
-- **AI Code Review**: Get AI-generated suggestions for code optimization and alternative approaches
-- **Performance Analytics**: Track space-time complexity and execution metrics
-- **Personalized Recommendations**: Get problem suggestions based on your solving history and performance
+- **AI-Powered Code Review**: Uses Google Gemini AI for intelligent code analysis
+- **Code Validation**: AI-powered code analysis and validation
+- **Problem Management**: Import problems from Kattis and manage custom problems
+- **User Analytics**: Track progress, streaks, and performance metrics
+- **Multi-language Support**: JavaScript, Python, Java, C++
+- **Responsive UI**: Modern React + Tailwind CSS interface
 
-### 🎯 Learning Features
-- **Progress Tracking**: Monitor your coding journey with detailed analytics
-- **Strength/Weakness Analysis**: Understand your coding patterns and areas for improvement
-- **Topic-based Learning**: Focus on specific algorithms and data structures
-- **Problem Analysis**: AI-powered analysis of complexity and alternative approaches
-
-## Tech Stack
-
-- **Frontend**: React.js with TypeScript
-- **Backend**: Node.js with Express.js
-- **Database**: MongoDB with Mongoose
-- **Code Validation**: Google Gemini 2.0 Flash API for intelligent code analysis
-- **AI Integration**: Google Gemini API for code reviews and problem analysis
-- **Authentication**: JWT tokens
-
-## Project Structure
-
-```
-codecoach/
-├── client/                 # React frontend
-├── server/                 # Node.js backend
-├── docs/                   # Documentation
-└── README.md
-```
-
-## Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
-- MongoDB Atlas account
+- MongoDB Atlas account (or local MongoDB)
 - Google Gemini API key
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repository:**
    ```bash
    git clone <repository-url>
-   cd codecoach
+   cd CodeCoach
    ```
 
-2. **Install dependencies**
+2. **Install all dependencies:**
    ```bash
-   # Install backend dependencies
+   npm run install:all
+   ```
+
+3. **Configure environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your actual values
+   ```
+
+4. **Start development servers:**
+   ```bash
+   npm run dev
+   ```
+
+## 🚀 Deployment
+
+### Vercel Deployment (Recommended)
+
+This project is configured for easy deployment on Vercel. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+**Quick Deploy:**
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set environment variables in Vercel dashboard
+4. Deploy!
+
+### Alternative Deployment Options
+
+- **Frontend**: Vercel, Netlify, GitHub Pages
+- **Backend**: Railway, Render, Heroku, DigitalOcean
+- **Database**: MongoDB Atlas (already configured)
+
+## 🏗️ Project Structure
+
+```
+CodeCoach/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── contexts/       # React contexts (Auth, etc.)
+│   │   ├── pages/          # Page components
+│   │   ├── config/         # Configuration files
+│   │   └── ...
+│   └── package.json
+├── server/                 # Node.js backend
+│   ├── src/
+│   │   ├── controllers/    # Route controllers
+│   │   ├── middleware/     # Express middleware
+│   │   ├── models/         # Mongoose models
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # Business logic services
+│   │   └── index.js        # Main server file
+│   ├── .env                # Environment variables
+│   └── package.json
+└── README.md
+```
+
+## 🛠️ Setup Instructions
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- MongoDB Atlas account (or local MongoDB)
+- Google Gemini API key
+
+### Backend Setup
+
+1. **Navigate to server directory:**
+   ```bash
    cd server
+   ```
+
+2. **Install dependencies:**
+   ```bash
    npm install
-   
-   # Install frontend dependencies
-   cd ../client
+   ```
+
+3. **Configure environment variables:**
+   Copy `.env.example` to `.env` and fill in your values:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Required environment variables:
+   ```env
+   MONGODB_URI=your_mongodb_connection_string
+   JWT_SECRET=your_jwt_secret_key
+   GEMINI_API_KEY=your_google_gemini_api_key
+
+   PORT=5000
+   NODE_ENV=development
+   JWT_EXPIRE=7d
+   ```
+
+4. **Start the server:**
+   ```bash
+   npm start
+   # or for development with auto-reload:
+   npm run dev
+   ```
+
+### Frontend Setup
+
+1. **Navigate to client directory:**
+   ```bash
+   cd client
+   ```
+
+2. **Install dependencies:**
+   ```bash
    npm install
    ```
 
-3. **Environment Setup**
-   ```bash
-   # Copy environment files
-   cp server/env.example server/.env
+3. **Configure environment variables:**
+   Create `.env` file:
+   ```env
+   REACT_APP_API_BASE_URL=http://localhost:5000
+   REACT_APP_ENV=development
    ```
 
-4. **Configure environment variables**
+4. **Start the development server:**
    ```bash
-   # Edit server/.env with your credentials
-   MONGODB_URI=your_mongodb_atlas_uri
-   JWT_SECRET=your_jwt_secret_key_here_make_it_long_and_random
-   GEMINI_API_KEY=your_gemini_api_key
-   ```
-
-5. **Start the application**
-   ```bash
-   # Start backend (from server directory)
-   npm start
-   
-   # Start frontend (from client directory)
    npm start
    ```
 
-## Environment Variables
+## 🔧 Configuration
 
-### Backend (.env)
+### Environment Variables
+
+#### Backend (.env)
+- `MONGODB_URI`: MongoDB connection string
+- `JWT_SECRET`: Secret key for JWT tokens
+- `GEMINI_API_KEY`: Google Gemini AI API key
+
+- `PORT`: Server port (default: 5000)
+- `NODE_ENV`: Environment (development/production)
+- `JWT_EXPIRE`: JWT token expiration (default: 7d)
+
+#### Frontend (.env)
+- `REACT_APP_API_BASE_URL`: Backend API base URL
+- `REACT_APP_ENV`: Environment (development/production)
+
+### API Endpoints
+
+- **Auth**: `/api/auth/*` - Login, register, profile management
+- **Problems**: `/api/problems/*` - Problem CRUD operations
+- **Submissions**: `/api/submissions` - Code submission and validation
+- **Analytics**: `/api/analytics/*` - User progress and statistics
+- **Import**: `/api/import/*` - Import problems from external sources
+
+## 🚀 Running the Application
+
+1. **Start the backend server:**
+   ```bash
+   cd server
+   npm start
+   ```
+
+2. **Start the frontend:**
+   ```bash
+   cd client
+   npm start
+   ```
+
+3. **Access the application:**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:5000
+   - Health check: http://localhost:5000/api/health
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd server
+npm test
 ```
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
-JWT_SECRET=your_jwt_secret_key_here_make_it_long_and_random
-GEMINI_API_KEY=your_gemini_api_key
-PORT=5000
+
+### Frontend Tests
+```bash
+cd client
+npm test
 ```
 
-## API Documentation
+## 📦 Dependencies
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
+### Backend
+- **Express**: Web framework
+- **Mongoose**: MongoDB ODM
+- **JWT**: Authentication
+- **Google Gemini AI**: AI-powered code review
 
-### Problems
-- `GET /api/problems` - Get all problems
-- `GET /api/problems/:id` - Get specific problem
-- `GET /api/problems/:id/analysis` - Get AI analysis of problem
-- `POST /api/problems/sample` - Add sample problems
+- **Cheerio**: Web scraping for problem import
 
-### Submissions
-- `POST /api/submissions` - Submit code for AI validation
-- `GET /api/submissions/user/:userId` - Get user submissions
-- `GET /api/submissions/:id` - Get specific submission
+### Frontend
+- **React**: UI framework
+- **TypeScript**: Type safety
+- **Tailwind CSS**: Styling
+- **Monaco Editor**: Code editor
+- **Chart.js**: Data visualization
+- **Axios**: HTTP client
 
-### AI Reviews
-- `POST /api/reviews/generate` - Generate AI code review
-- `GET /api/reviews/:submissionId` - Get review for submission
+## 🔒 Security Features
 
-## Contributing
+- JWT-based authentication
+- Password hashing with bcrypt
+- Environment variable protection
+- CORS configuration
+- Input validation and sanitization
+
+## 🚧 Development Notes
+
+- The project uses a monorepo structure
+- Backend runs on port 5000 by default
+- Frontend runs on port 3000 by default
+- MongoDB Atlas is used for the database
+- All API keys are stored in environment variables
+
+## 📝 License
+
+This project is licensed under the ISC License.
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -125,9 +258,6 @@ PORT=5000
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+## 📞 Support
 
-MIT License - see LICENSE file for details 
-=======
-# CodeCoach
->>>>>>> 0120db4176aee1f5c00f34086a62c8e8ef5cf4f2
+For support or questions, please open an issue in the repository.

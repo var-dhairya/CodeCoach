@@ -1,0 +1,35 @@
+{
+  "name": "codecoach",
+  "version": "1.0.0",
+  "description": "AI-Powered Coding Practice Platform",
+  "private": true,
+  "scripts": {
+    "start": "cd server && npm start",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run vercel-build",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm start",
+    "dev:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "clean": "cd client && rm -rf build && cd ../server && rm -rf .vercel",
+    "vercel-build": "npm run build:client"
+  },
+  "keywords": [
+    "coding",
+    "practice",
+    "ai",
+    "education",
+    "leetcode",
+    "vercel"
+  ],
+  "author": "CodeCoach Team",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
