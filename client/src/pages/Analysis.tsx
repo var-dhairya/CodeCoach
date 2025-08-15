@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { config } from '../config/config';
 
 interface AnalysisData {
   complexity: {
@@ -37,7 +38,7 @@ const Analysis: React.FC = () => {
     const fetchAnalysis = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/problems/${problemId}/analysis`);
+        const response = await axios.get(`${config.API_BASE_URL}/api/problems/${problemId}/analysis`);
         setAnalysis(response.data.data);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to fetch analysis');

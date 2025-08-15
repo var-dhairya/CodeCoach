@@ -1,8 +1,5 @@
 export const config = {
-  API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 
-    (process.env.NODE_ENV === 'production' 
-      ? 'https://your-backend-domain.vercel.app' // Update this with your actual backend URL
-      : 'http://localhost:5000'),
+  API_BASE_URL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000',
   ENV: process.env.REACT_APP_ENV || process.env.NODE_ENV || 'development',
   API_ENDPOINTS: {
     AUTH: {

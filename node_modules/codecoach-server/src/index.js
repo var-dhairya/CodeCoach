@@ -40,7 +40,7 @@ const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app', // Frontend URL from environment
+        process.env.FRONTEND_URL || 'https://your-frontend-project.vercel.app', // Frontend URL from environment
         'https://your-custom-domain.com' // Update with your custom domain if any
       ]
     : ['http://localhost:3000'],

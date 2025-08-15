@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { config } from '../config/config';
 
 interface Problem {
   _id: string;
@@ -46,7 +47,7 @@ const Problems: React.FC = () => {
   const fetchProblems = async () => {
     try {
       setLoading(true);
-      const response = await axios.get<ProblemsResponse>('http://localhost:5000/api/problems');
+      const response = await axios.get<ProblemsResponse>(`${config.API_BASE_URL}/api/problems`);
       
       if (response.data.success) {
         setProblems(response.data.data.problems);

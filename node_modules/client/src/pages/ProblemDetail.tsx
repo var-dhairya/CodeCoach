@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { config } from '../config/config';
 import CodeEditor from '../components/CodeEditor/CodeEditor';
 import SubmissionResults from '../components/SubmissionResults/SubmissionResults';
 
@@ -179,9 +180,15 @@ int main() {
   }, [id]);
 
   const fetchProblem = async () => {
+    if (!id) {
+      setError('Problem ID is required');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const response = await axios.get<ProblemResponse>(`http://localhost:5000/api/problems/${id}`);
+      const response = await axios.get<ProblemResponse>(`${config.API_BASE_URL}/api/problems/${id}`);
       
       if (response.data.success) {
         setProblem(response.data.data.problem);
@@ -215,6 +222,11 @@ int main() {
   };
 
   const handleSubmitSolution = async () => {
+    if (!id) {
+      alert('Problem ID is required');
+      return;
+    }
+
     if (!code.trim()) {
       alert('Please write some code before submitting');
       return;
@@ -222,7 +234,7 @@ int main() {
 
     try {
       setSubmitting(true);
-      const response = await axios.post('http://localhost:5000/api/submissions', {
+      const response = await axios.post(`${config.API_BASE_URL}/api/submissions`, {
         problemId: id,
         code,
         language

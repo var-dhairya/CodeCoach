@@ -4,11 +4,11 @@ This guide will help you deploy your CodeCoach application to Vercel.
 
 ## 🚀 Deployment Options
 
-### Option 1: Frontend Only (Recommended for MVP)
-Deploy only the React frontend to Vercel and use a separate backend service.
+### Option 1: Separate Frontend & Backend (Recommended)
+Deploy frontend and backend as separate Vercel projects for better management and scalability.
 
-### Option 2: Full Stack
-Deploy both frontend and backend to Vercel using serverless functions.
+### Option 2: Frontend Only
+Deploy only the React frontend to Vercel and use a separate backend service.
 
 ## 📋 Prerequisites
 
@@ -17,7 +17,44 @@ Deploy both frontend and backend to Vercel using serverless functions.
 3. **MongoDB Atlas**: Already configured
 4. **API Keys**: Google Gemini API key
 
-## 🔧 Option 1: Frontend Only Deployment
+## 🔧 Option 1: Separate Frontend & Backend Deployment
+
+### Step 1: Deploy Backend First
+1. Go to [vercel.com](https://vercel.com)
+2. Click "New Project"
+3. Import your GitHub repository
+4. **Important**: Set root directory to `server`
+5. Build command: `npm run vercel-build`
+6. Output directory: `.`
+7. Install command: `npm install`
+
+### Step 2: Configure Backend Environment Variables
+In Vercel dashboard, add these environment variables:
+```
+MONGODB_URI=mongodb+srv://spare6957:spare6957@cluster0.3wxoqpf.mongodb.net/codecoach
+JWT_SECRET=your_jwt_secret_key_here_make_it_long_and_random
+GEMINI_API_KEY=AIzaSyBJfhBJCoFlH5Uq3Z3vySkMheKyA5Z9T8E
+NODE_ENV=production
+JWT_EXPIRE=7d
+FRONTEND_URL=https://your-frontend-project.vercel.app
+```
+
+### Step 3: Deploy Frontend
+1. Create another Vercel project
+2. Import the same GitHub repository
+3. **Important**: Set root directory to `client`
+4. Build command: `npm run build`
+5. Output directory: `build`
+6. Install command: `npm install`
+
+### Step 4: Configure Frontend Environment Variables
+In frontend Vercel dashboard, add these environment variables:
+```
+REACT_APP_API_BASE_URL=https://your-backend-project.vercel.app
+REACT_APP_ENV=production
+```
+
+## 🔧 Option 2: Frontend Only Deployment
 
 ### Step 1: Prepare Frontend
 ```bash
@@ -47,43 +84,6 @@ Use one of these services for your backend:
 - **Render**: Free tier available
 - **Heroku**: Classic choice
 - **DigitalOcean App Platform**: Scalable
-
-## 🔧 Option 2: Full Stack Deployment
-
-### Step 1: Deploy Backend First
-1. Go to [vercel.com](https://vercel.com)
-2. Click "New Project"
-3. Import your GitHub repository
-4. Set root directory to `server`
-5. Build command: `npm run vercel-build`
-6. Output directory: `.`
-7. Install command: `npm install`
-
-### Step 2: Configure Backend Environment Variables
-In Vercel dashboard, add these environment variables:
-```
-MONGODB_URI=mongodb+srv://spare6957:spare6957@cluster0.3wxoqpf.mongodb.net/codecoach
-JWT_SECRET=your_jwt_secret_key_here_make_it_long_and_random
-GEMINI_API_KEY=AIzaSyBJfhBJCoFlH5Uq3Z3vySkMheKyA5Z9T8E
-
-PORT=5000
-NODE_ENV=production
-JWT_EXPIRE=7d
-```
-
-### Step 3: Deploy Frontend
-1. Create another Vercel project
-2. Set root directory to `client`
-3. Build command: `npm run build`
-4. Output directory: `build`
-5. Install command: `npm install`
-
-### Step 4: Update Frontend API URL
-In frontend environment variables:
-```
-REACT_APP_API_BASE_URL=https://your-backend-project.vercel.app
-REACT_APP_ENV=production
-```
 
 ## 🌐 Custom Domain Setup
 

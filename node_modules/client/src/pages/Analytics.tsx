@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { config } from '../config/config';
 import {
   ChartBarIcon,
   TrophyIcon,
@@ -94,7 +95,7 @@ const Analytics: React.FC = () => {
 
       console.log('Fetching analytics with token:', token ? 'Present' : 'Missing');
       
-      const response = await fetch('http://localhost:5000/api/analytics/dashboard', {
+      const response = await fetch(`${config.API_BASE_URL}/api/analytics/dashboard`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
