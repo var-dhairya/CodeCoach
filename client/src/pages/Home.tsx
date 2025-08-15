@@ -5,7 +5,6 @@ import {
   CodeBracketIcon,
   ChartBarIcon,
   LightBulbIcon,
-  UserGroupIcon,
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
 
@@ -193,15 +192,15 @@ const Home: React.FC = () => {
               Empowering developers to master coding through AI-powered practice and personalized learning.
             </p>
             <div className="mt-8 flex justify-center space-x-6">
-              <button type="button" className="text-gray-400 hover:text-gray-300">
+              <a href="#" className="text-gray-400 hover:text-gray-300">
                 Privacy
-              </button>
-              <button type="button" className="text-gray-400 hover:text-gray-300">
+              </a>
+              <a href="#" className="text-gray-400 hover:text-gray-300">
                 Terms
-              </button>
-              <button type="button" className="text-gray-400 hover:text-gray-300">
+              </a>
+              <a href="#" className="text-gray-400 hover:text-gray-300">
                 Contact
-              </button>
+              </a>
             </div>
           </div>
         </div>

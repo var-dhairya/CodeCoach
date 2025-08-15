@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { API_ENDPOINTS } from '../config/api';
 import {
   ChartBarIcon,
@@ -83,7 +84,7 @@ const Analytics: React.FC = () => {
 
       console.log('Fetching analytics with token:', token ? 'Present' : 'Missing');
       
-      const response = await fetch(API_ENDPOINTS.ANALYTICS_DASHBOARD, {
+      const response = await fetch(API_ENDPOINTS.ANALYTICS, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
