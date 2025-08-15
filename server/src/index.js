@@ -7,16 +7,29 @@ const path = require('path');
 // Load environment variables with explicit path
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-// Temporary hardcoded environment variables for testing
-process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://spare6957:spare6957@cluster0.3wxoqpf.mongodb.net/codecoach';
-process.env.JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here_make_it_long_and_random';
-process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBJfhBJCoFlH5Uq3Z3vySkMheKyA5Z9T8E';
+// Alternative: Load from current working directory
+if (!process.env.MONGODB_URI) {
+  dotenv.config();
+}
+
+// Check required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'GEMINI_API_KEY', 'JUDGE0_API_KEY'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+  console.error('Please check your .env file and ensure all required variables are set.');
+  process.exit(1);
+}
 
 // Debug environment variables
 console.log('🔧 Environment variables:');
 console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
 console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
+console.log('JUDGE0_API_KEY:', process.env.JUDGE0_API_KEY ? 'Set' : 'Not set');
+console.log('PORT:', process.env.PORT || '5000 (default)');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'development (default)');
 
 const app = express();
 
@@ -26,11 +39,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
-if (!process.env.MONGODB_URI) {
-  console.error('❌ MONGODB_URI is not set in environment variables');
-  process.exit(1);
-}
-
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB Atlas');
@@ -40,6 +48,7 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch((error) => {
     console.error('❌ MongoDB connection error:', error);
+    process.exit(1);
   });
 
 // Import routes
@@ -114,9 +123,8 @@ const startServer = async () => {
       console.log(`💻 Submissions endpoint at http://localhost:${PORT}/api/submissions`);
       console.log(`📈 Analytics endpoint at http://localhost:${PORT}/api/analytics`);
       console.log(`🔐 Auth endpoints at http://localhost:${PORT}/api/auth`);
-          
-    console.log(`📥 Import endpoints at http://localhost:${PORT}/api/import`);
-    console.log('Press Ctrl+C to stop the server');
+      console.log(`📥 Import endpoints at http://localhost:${PORT}/api/import`);
+      console.log('Press Ctrl+C to stop the server');
     });
 
     // Handle graceful shutdown

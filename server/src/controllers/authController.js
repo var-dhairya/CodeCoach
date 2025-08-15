@@ -50,7 +50,7 @@ const register = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
     // Remove password from response
@@ -107,7 +107,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
     // Remove password from response

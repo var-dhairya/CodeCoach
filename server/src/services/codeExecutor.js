@@ -2,7 +2,11 @@ const axios = require('axios');
 
 // Judge0 API configuration
 const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com';
-const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || '2fb691eb70msh7410d266ed112dap139e9ejsn525c5551c79a'; // Use provided API key
+const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+
+if (!JUDGE0_API_KEY) {
+  throw new Error('JUDGE0_API_KEY environment variable is required for code execution');
+}
 
 // Language mappings for Judge0
 const LANGUAGE_MAPPINGS = {

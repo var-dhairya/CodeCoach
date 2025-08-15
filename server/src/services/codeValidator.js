@@ -1,7 +1,12 @@
 const axios = require('axios');
 
-// Gemini API configuration
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBJfhBJCoFlH5Uq3Z3vySkMheKyA5Z9T8E';
+// Google Gemini API configuration
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable is required for code validation');
+}
+
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
 // Validate code using Gemini
