@@ -40,8 +40,8 @@ const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        process.env.FRONTEND_URL || 'https://your-frontend-project.vercel.app', // Frontend URL from environment
-        'https://your-custom-domain.com' // Update with your custom domain if any
+        process.env.FRONTEND_URL || 'https://code-coach-client.vercel.app', // Frontend URL from environment
+        'https://code-coach-client.vercel.app' // Your actual frontend URL
       ]
     : ['http://localhost:3000'],
   credentials: true,
