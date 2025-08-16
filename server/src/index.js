@@ -76,8 +76,6 @@ const getMongoConnection = async () => {
   try {
     console.log('🔄 Establishing MongoDB connection...');
     await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 3000,
       socketTimeoutMS: 8000,
       connectTimeoutMS: 5000,
@@ -86,8 +84,7 @@ const getMongoConnection = async () => {
       maxIdleTimeMS: 5000,
       retryWrites: true,
       w: 'majority',
-      bufferCommands: false,
-      bufferMaxEntries: 0
+      bufferCommands: false
     });
     
     mongooseConnection = mongoose.connection;

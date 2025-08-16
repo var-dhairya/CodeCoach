@@ -12,8 +12,6 @@ const ensureDbConnection = async (req, res, next) => {
     
     // Connect to MongoDB with serverless-optimized settings
     await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 3000,
       socketTimeoutMS: 8000,
       connectTimeoutMS: 5000,
@@ -22,8 +20,7 @@ const ensureDbConnection = async (req, res, next) => {
       maxIdleTimeMS: 5000,
       retryWrites: true,
       w: 'majority',
-      bufferCommands: false,
-      bufferMaxEntries: 0
+      bufferCommands: false
     });
 
     console.log('✅ MongoDB connected for request');
