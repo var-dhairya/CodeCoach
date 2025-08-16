@@ -34,6 +34,7 @@ console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
 console.log('PORT:', process.env.PORT || '5000 (default)');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'development (default)');
 
+// Force redeploy with new MongoDB URI: mongodb+srv://coder:coder@12@cluster0.3wxoqpf.mongodb.net/codecoach
 const app = express();
 
 // Middleware
