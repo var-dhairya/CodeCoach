@@ -76,6 +76,75 @@ const getProblemById = async (req, res) => {
   }
 };
 
+// Generate AI analysis and optimal solution for a problem
+const generateAIAnalysis = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { language } = req.body;
+    
+    if (!language) {
+      return res.status(400).json({
+        success: false,
+        message: 'Language is required'
+      });
+    }
+    
+    const problem = await Problem.findById(id);
+    if (!problem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Problem not found'
+      });
+    }
+    
+    // Generate AI analysis and optimal solution
+    let analysis = null;
+    let optimalSolution = null;
+    
+    try {
+      const { generateProblemAnalysis, generateOptimalSolution } = require('../services/aiService');
+      
+      // Generate problem analysis
+      console.log(`🔍 Generating AI analysis for problem: ${id}`);
+      analysis = await generateProblemAnalysis({
+        problemTitle: problem.title,
+        problemDescription: problem.description,
+        difficulty: problem.difficulty,
+        primaryTopic: problem.primaryTopic,
+        subTopics: problem.subTopics || [],
+        testCases: problem.testCases || []
+      });
+      console.log(`✅ AI analysis generated: ${analysis ? 'Success' : 'Failed'}`);
+      
+      // Generate optimal solution
+      console.log(`🔍 Generating optimal solution for language: ${language}`);
+      optimalSolution = await generateOptimalSolution(problem.description, language);
+      console.log(`✅ Optimal solution generated: ${optimalSolution ? 'Success' : 'Failed'}`);
+      
+    } catch (error) {
+      console.error('❌ AI analysis generation failed:', error);
+      // Continue without AI analysis if generation fails
+    }
+    
+    res.json({
+      success: true,
+      message: 'AI analysis generated successfully',
+      data: {
+        analysis,
+        optimalSolution
+      }
+    });
+    
+  } catch (error) {
+    console.error('Generate AI analysis error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate AI analysis',
+      error: error.message
+    });
+  }
+};
+
 // Add sample problems to the database
 const addSampleProblems = async (req, res) => {
   try {
@@ -272,6 +341,7 @@ const getProblemAnalysis = async (req, res) => {
 module.exports = {
   getAllProblems,
   getProblemById,
+  generateAIAnalysis,
   addSampleProblems,
   getProblemAnalysis
 }; 

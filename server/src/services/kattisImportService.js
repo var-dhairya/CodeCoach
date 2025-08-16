@@ -3,6 +3,162 @@ const cheerio = require('cheerio');
 const Problem = require('../models/Problem');
 
 class KattisImportService {
+  // Clean and normalize text to handle UTF-8 encoding issues
+  cleanText(text) {
+    if (!text) return '';
+    
+    return text
+      // Normalize Unicode characters
+      .normalize('NFKC')
+      // Replace mathematical notation with plain text
+      .replace(/\$(\d+)\$-D/g, '$1D') // Convert $2$-D to 2D
+      .replace(/\$(\d+)\$-D/g, '$1D') // Convert $1$-D to 1D
+      // Remove other LaTeX-style math notation
+      .replace(/\$([^$]+)\$/g, '$1') // Remove $...$ math notation
+      // Handle specific patterns like "company.1" -> "company. 1"
+      .replace(/([a-zA-Z])\.(\d+)/g, '$1. $2') // Add space after period before number
+      // Clean up special characters
+      .replace(/[\u2018\u2019]/g, "'") // Smart quotes to regular quotes
+      .replace(/[\u201C\u201D]/g, '"') // Smart quotes to regular quotes
+      .replace(/[\u2013\u2014]/g, '-') // Em/en dashes to regular dashes
+      // Remove any remaining control characters
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      // Clean up multiple spaces and newlines
+      .replace(/\s+/g, ' ')
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim();
+  }
+
+  // Extract clean text from HTML element, handling entities and special characters
+  extractCleanText($, element) {
+    if (!element) return '';
+    
+    // Get the HTML content first
+    let html = $(element).html() || '';
+    
+    // Decode HTML entities
+    html = html
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&mdash;/g, '—')
+      .replace(/&ndash;/g, '–')
+      .replace(/&hellip;/g, '...');
+    
+    // Now get the text content
+    let text = $(element).text().trim();
+    
+    // Clean the text
+    text = this.cleanText(text);
+    
+    return text;
+  }
+
+  // Extract text from HTML content more robustly, handling complex structures
+  extractRobustText($, selector) {
+    let text = '';
+    
+    try {
+      // Try to get the element
+      const element = $(selector);
+      if (element.length === 0) {
+        return '';
+      }
+      
+      // First try to get clean text
+      text = this.extractCleanText($, element);
+      
+      // If that doesn't work well, try a different approach
+      if (!text || text.length < 10) {
+        // Get all text nodes recursively
+        const textNodes = [];
+        element.find('*').each((i, el) => {
+          const node = $(el);
+          if (node.children().length === 0) { // Leaf node
+            const nodeText = node.text().trim();
+            if (nodeText && nodeText.length > 0) {
+              textNodes.push(nodeText);
+            }
+          }
+        });
+        text = textNodes.join(' ').trim();
+        text = this.cleanText(text);
+      }
+      
+    } catch (error) {
+      console.error(`Error extracting text from ${selector}:`, error.message);
+      // Fallback: just get the text content
+      text = $(selector).text().trim();
+      text = this.cleanText(text);
+    }
+    
+    return text;
+  }
+
+  // Extract text from the entire problem body, handling complex HTML structures
+  extractFullProblemText($) {
+    let fullText = '';
+    
+    try {
+      // Try to get the problem body
+      const problemBody = $('.problembody');
+      if (problemBody.length > 0) {
+        // Get all text content, preserving some structure
+        const textParts = [];
+        
+        // Get text from different types of elements
+        problemBody.find('p, h1, h2, h3, h4, h5, h6, div, span').each((i, el) => {
+          const element = $(el);
+          const tagName = element.prop('tagName').toLowerCase();
+          const text = this.extractCleanText($, element);
+          
+          if (text && text.length > 10) {
+            // Add appropriate spacing based on element type
+            if (tagName.startsWith('h')) {
+              textParts.push(`\n\n${text}\n`);
+            } else if (tagName === 'p') {
+              textParts.push(text);
+            } else {
+              textParts.push(text);
+            }
+          }
+        });
+        
+        fullText = textParts.join('\n\n');
+      }
+      
+      // If no problem body found, try alternative selectors
+      if (!fullText) {
+        const mainContent = $('main, .content, .problem-content, #content');
+        if (mainContent.length > 0) {
+          fullText = this.extractRobustText($, mainContent);
+        }
+      }
+      
+      // Final fallback: get all text from the page
+      if (!fullText) {
+        fullText = $('body').text().trim();
+      }
+      
+      // Clean the full text
+      fullText = this.cleanText(fullText);
+      
+      // Remove excessive whitespace
+      fullText = fullText.replace(/\n{3,}/g, '\n\n');
+      
+    } catch (error) {
+      console.error('Error extracting full problem text:', error.message);
+      // Fallback to basic text extraction
+      fullText = $('body').text().trim();
+      fullText = this.cleanText(fullText);
+    }
+    
+    return fullText;
+  }
+
   // Generate slug from title
   generateSlug(title) {
     return title
@@ -31,17 +187,43 @@ class KattisImportService {
         }
       });
 
+      console.log(`✅ Successfully fetched page (${response.data.length} characters)`);
+      
       const $ = cheerio.load(response.data);
+      
+      // Debug: Log raw content for troubleshooting
+      this.logRawContent($);
       
       // Extract problem data
       const title = this.extractTitle($);
-      const description = this.extractDescription($);
+      console.log(`📝 Extracted title: "${title}"`);
+      
+      let description = this.extractDescription($);
+      console.log(`📝 Extracted description: ${description.length} characters`);
+      
+      // If description is too short, try to extract full problem text
+      if (description.length < 200) {
+        console.log(`⚠️ Description too short, trying full text extraction...`);
+        const fullText = this.extractFullProblemText($);
+        if (fullText.length > description.length) {
+          console.log(`📝 Using full text extraction: ${fullText.length} characters`);
+          // Use the full text as description
+          description = fullText;
+        }
+      }
+      
       const inputFormat = this.extractInputFormat($);
+      console.log(`📝 Extracted input format: ${inputFormat.length} characters`);
+      
       const outputFormat = this.extractOutputFormat($);
+      console.log(`📝 Extracted output format: ${outputFormat.length} characters`);
+      
       const { sampleInputs, sampleOutputs } = this.extractSamples($);
+      console.log(`📝 Extracted ${sampleInputs.length} sample inputs and ${sampleOutputs.length} sample outputs`);
       
       // Generate slug
       const slug = this.generateSlug(title);
+      console.log(`🔗 Generated slug: "${slug}"`);
       
       // Extract problem ID from URL
       const problemId = url.split('/problems/')[1].split('/')[0];
@@ -59,7 +241,11 @@ class KattisImportService {
         originalUrl: url
       };
     } catch (error) {
-      console.error('Error scraping Kattis problem:', error.message);
+      console.error('❌ Error scraping Kattis problem:', error.message);
+      if (error.response) {
+        console.error(`   HTTP Status: ${error.response.status}`);
+        console.error(`   Response length: ${error.response.data?.length || 'unknown'}`);
+      }
       throw new Error(`Failed to scrape Kattis problem: ${error.message}`);
     }
   }
@@ -76,7 +262,7 @@ class KattisImportService {
       throw new Error('Could not extract problem title');
     }
     
-    return title;
+    return this.cleanText(title);
   }
 
   // Extract description from Kattis page
@@ -89,7 +275,7 @@ class KattisImportService {
       // Get all paragraphs from the problem body
       const paragraphs = [];
       problemBody.find('p').each((i, el) => {
-        const text = $(el).text().trim();
+        const text = this.extractRobustText($, el);
         if (text.length > 20) { // Skip very short paragraphs
           paragraphs.push(text);
         }
@@ -101,12 +287,17 @@ class KattisImportService {
     if (!description) {
       const paragraphs = [];
       $('p').each((i, el) => {
-        const text = $(el).text().trim();
+        const text = this.extractRobustText($, el);
         if (text.length > 50 && paragraphs.length < 3) {
           paragraphs.push(text);
         }
       });
       description = paragraphs.join('\n\n');
+    }
+    
+    // If still no description, try to get text from the entire problem body
+    if (!description || description.length < 100) {
+      description = this.extractRobustText($, '.problembody');
     }
     
     return description || 'Problem description not available';
@@ -125,7 +316,7 @@ class KattisImportService {
         
         while (current.length > 0 && !current.is('h2') && inputParagraphs.length < 3) {
           if (current.is('p')) {
-            const text = current.text().trim();
+            const text = this.extractCleanText($, current);
             if (text.length > 10) {
               inputParagraphs.push(text);
             }
@@ -153,7 +344,7 @@ class KattisImportService {
         
         while (current.length > 0 && !current.is('h2') && outputParagraphs.length < 3) {
           if (current.is('p')) {
-            const text = current.text().trim();
+            const text = this.extractCleanText($, current);
             if (text.length > 10) {
               outputParagraphs.push(text);
             }
@@ -646,6 +837,56 @@ class KattisImportService {
     }
     
     return tips;
+  }
+
+  // Test method to verify text cleaning works correctly
+  testTextCleaning() {
+    const testCases = [
+      {
+        input: "Frogger is a classic $2$-D video game that challenges the player to move a frog character safely across a traffic-filled road and a hazardous river. What is not well known is that Frogger actually began as a prototype board game based on a $1$-D concept at a now-defunct toy company.1 After spending millions of dollars following the advice of consultants, company executives realized that the resulting game was almost completely deterministic, and therefore not much fun to play,2 so they sold all Frogger rights to a video game company in an attempt to recoup some of the development costs. The rest, as they say, is video game history.",
+        expected: "Frogger is a classic 2D video game that challenges the player to move a frog character safely across a traffic-filled road and a hazardous river. What is not well known is that Frogger actually began as a prototype board game based on a 1D concept at a now-defunct toy company.1 After spending millions of dollars following the advice of consultants, company executives realized that the resulting game was almost completely deterministic, and therefore not much fun to play,2 so they sold all Frogger rights to a video game company in an attempt to recoup some of the development costs. The rest, as they say, is video game history."
+      },
+      {
+        input: "Test with smart quotes: 'hello' and \"world\" and em-dash — and en-dash –",
+        expected: "Test with smart quotes: 'hello' and \"world\" and em-dash - and en-dash -"
+      }
+    ];
+
+    console.log('🧪 Testing text cleaning functionality...');
+    testCases.forEach((testCase, index) => {
+      const result = this.cleanText(testCase.input);
+      const passed = result === testCase.expected;
+      console.log(`Test ${index + 1}: ${passed ? '✅ PASS' : '❌ FAIL'}`);
+      if (!passed) {
+        console.log(`  Input:    "${testCase.input}"`);
+        console.log(`  Expected: "${testCase.expected}"`);
+        console.log(`  Got:      "${result}"`);
+      }
+    });
+  }
+
+  // Debug method to log raw HTML content for troubleshooting
+  logRawContent($, selector = '.problembody') {
+    try {
+      const element = $(selector);
+      if (element.length > 0) {
+        console.log(`🔍 Raw HTML content from ${selector}:`);
+        console.log(element.html().substring(0, 1000) + '...');
+        console.log(`📏 Element length: ${element.html().length} characters`);
+      } else {
+        console.log(`❌ No element found with selector: ${selector}`);
+        // Try to find alternative selectors
+        const alternatives = ['main', '.content', '.problem-content', '#content', 'body'];
+        alternatives.forEach(alt => {
+          const altElement = $(alt);
+          if (altElement.length > 0) {
+            console.log(`🔍 Found alternative selector: ${alt} (${altElement.html().length} characters)`);
+          }
+        });
+      }
+    } catch (error) {
+      console.error(`Error logging raw content from ${selector}:`, error.message);
+    }
   }
 }
 

@@ -156,6 +156,7 @@ const submitSolution = async (req, res) => {
     // Generate AI code review
     let aiReview = null;
     try {
+      // Generate AI code review
       aiReview = await generateCodeReview({
         code,
         language,
@@ -164,8 +165,9 @@ const submitSolution = async (req, res) => {
         allPassed,
         validationResult
       });
+      console.log('✅ AI review generated:', aiReview ? 'Success' : 'Failed');
     } catch (error) {
-      console.error('AI review generation failed:', error);
+      console.error('❌ AI review generation failed:', error);
       // Continue without AI review if it fails
     }
 
@@ -175,6 +177,7 @@ const submitSolution = async (req, res) => {
     submission.executionTime = totalExecutionTime;
     submission.memoryUsed = Math.max(...testResults.map(r => r.memoryUsage));
     submission.aiReview = aiReview;
+    submission.optimalSolution = null; // Remove optimal solution from submission
     submission.validationResult = validationResult;
     submission.completedAt = new Date();
 
@@ -233,6 +236,7 @@ const submitSolution = async (req, res) => {
           executionTime: totalExecutionTime,
           memoryUsed: submission.memoryUsed,
           aiReview,
+          optimalSolution: null, // Remove optimal solution from response
           validationResult: {
             syntaxValid: validationResult.syntaxValid,
             logicValid: validationResult.logicValid,

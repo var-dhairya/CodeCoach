@@ -6,6 +6,12 @@ const Submission = require('../models/Submission');
 const getDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
+    const user = await User.findById(userId);
+    
+    // Check if this is the demo user and provide realistic demo data
+    if (user && user.email === 'demo@codecoach.com') {
+      return res.json(getDemoAnalytics());
+    }
     
     // Get basic counts
     const totalProblems = await Problem.countDocuments();
@@ -66,6 +72,113 @@ const getDashboard = async (req, res) => {
     });
   }
 };
+
+// Generate realistic demo analytics data
+function getDemoAnalytics() {
+  const today = new Date();
+  const recentActivity = [];
+  
+  // Generate realistic recent activity for the last 7 days
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    
+    // Random activity based on realistic patterns
+    let problemsSolved = 0;
+    let timeSpent = 0;
+    
+    if (i === 0) { // Today
+      problemsSolved = Math.random() > 0.3 ? 1 : 0;
+      timeSpent = problemsSolved * (45 + Math.random() * 30); // 45-75 minutes
+    } else if (i === 1) { // Yesterday
+      problemsSolved = Math.random() > 0.2 ? 1 : 0;
+      timeSpent = problemsSolved * (40 + Math.random() * 35);
+    } else if (i === 2) { // 2 days ago
+      problemsSolved = Math.random() > 0.4 ? 1 : 0;
+      timeSpent = problemsSolved * (50 + Math.random() * 25);
+    } else if (i === 3) { // 3 days ago
+      problemsSolved = Math.random() > 0.3 ? 1 : 0;
+      timeSpent = problemsSolved * (35 + Math.random() * 40);
+    } else if (i === 4) { // 4 days ago
+      problemsSolved = Math.random() > 0.5 ? 1 : 0;
+      timeSpent = problemsSolved * (55 + Math.random() * 20);
+    } else if (i === 5) { // 5 days ago
+      problemsSolved = Math.random() > 0.2 ? 1 : 0;
+      timeSpent = problemsSolved * (30 + Math.random() * 45);
+    } else { // 6 days ago
+      problemsSolved = Math.random() > 0.4 ? 1 : 0;
+      timeSpent = problemsSolved * (45 + Math.random() * 30);
+    }
+    
+    recentActivity.push({
+      date: date.toLocaleDateString(),
+      problemsSolved,
+      timeSpent: Math.round(timeSpent)
+    });
+  }
+  
+  return {
+    totalProblems: 10,
+    solvedProblems: 8,
+    accuracy: 85,
+    streak: 5,
+    favoriteLanguage: 'python',
+    avgTimePerProblem: 60, // 1 hour average
+    totalTimeSpent: 480, // 8 hours total
+    recentActivity,
+    topicStats: [
+      { topic: 'arrays', solved: 2, total: 2, accuracy: 90 },
+      { topic: 'hash-table', solved: 1, total: 1, accuracy: 87 },
+      { topic: 'stack', solved: 1, total: 1, accuracy: 85 },
+      { topic: 'trees', solved: 1, total: 1, accuracy: 80 },
+      { topic: 'sliding-window', solved: 1, total: 1, accuracy: 75 },
+      { topic: 'dynamic-programming', solved: 1, total: 1, accuracy: 88 },
+      { topic: 'math', solved: 1, total: 1, accuracy: 92 }
+    ],
+    difficultyStats: {
+      easy: { solved: 6, total: 7 },
+      medium: { solved: 2, total: 2 },
+      hard: { solved: 0, total: 1 }
+    },
+    submissionStats: {
+      accepted: 8,
+      wrong: 3,
+      timeLimit: 1,
+      memoryLimit: 0,
+      runtime: 0
+    },
+    achievements: [
+      {
+        id: 'first-solve',
+        title: 'First Steps',
+        description: 'Solved your first problem',
+        unlockedAt: '2 months ago',
+        icon: '🎯'
+      },
+      {
+        id: 'accuracy-master',
+        title: 'Accuracy Master',
+        description: 'Achieved 80%+ accuracy',
+        unlockedAt: '1 month ago',
+        icon: '🎯'
+      },
+      {
+        id: 'week-streak',
+        title: 'Consistent Coder',
+        description: '7-day solving streak',
+        unlockedAt: '2 weeks ago',
+        icon: '🔥'
+      },
+      {
+        id: 'problem-crusher',
+        title: 'Problem Crusher',
+        description: 'Solved 8 problems',
+        unlockedAt: '1 week ago',
+        icon: '💪'
+      }
+    ]
+  };
+}
 
 // Helper function to calculate streak
 function calculateStreak(acceptedSubmissions) {

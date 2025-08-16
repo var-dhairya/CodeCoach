@@ -58,6 +58,9 @@ const ProblemDetail: React.FC = () => {
   const [language, setLanguage] = useState('javascript');
   const [submitting, setSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
+  const [optimalSolution, setOptimalSolution] = useState<any>(null);
+  const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
 
   // Code templates for different languages
   const codeTemplates = {
@@ -245,6 +248,7 @@ int main() {
       });
 
       if (response.data.success) {
+        console.log('✅ Submission successful:', response.data.data.submission);
         setSubmissionResult(response.data.data.submission);
         setActiveTab('submissions');
       } else {
@@ -262,6 +266,36 @@ int main() {
     setLanguage(newLanguage);
     // Set default code template for the new language
     setCode(codeTemplates[newLanguage as keyof typeof codeTemplates] || '');
+  };
+
+  const generateAIAnalysis = async () => {
+    if (!id) return;
+    
+    try {
+      setGeneratingAnalysis(true);
+      
+      // Call the AI analysis endpoint
+      const response = await axios.post(`${config.API_BASE_URL}/api/problems/${id}/analysis`, {
+        language: language
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.data.success) {
+        setAiAnalysis(response.data.data.analysis);
+        setOptimalSolution(response.data.data.optimalSolution);
+        setActiveTab('analysis');
+      } else {
+        alert('Failed to generate AI analysis: ' + response.data.message);
+      }
+    } catch (error: any) {
+      console.error('AI analysis generation error:', error);
+      alert('Failed to generate AI analysis: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setGeneratingAnalysis(false);
+    }
   };
 
   if (loading) {
@@ -499,6 +533,82 @@ int main() {
                   <p className="text-gray-700">{problem.solution.explanation}</p>
                 </div>
               )}
+
+              {/* AI-Generated Optimal Solution */}
+              {optimalSolution && optimalSolution.code && (
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <h3 className="text-lg font-semibold text-gray-900">AI-Generated Optimal Solution</h3>
+                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      {language.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Approach Explanation */}
+                    {optimalSolution.approach && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Approach</h4>
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <p className="text-blue-800 text-sm">{optimalSolution.approach}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Complexity Analysis */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <h4 className="font-medium text-blue-900 mb-1">Time Complexity</h4>
+                        <p className="text-blue-800 font-mono">{optimalSolution.complexity?.time || 'Unknown'}</p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <h4 className="font-medium text-green-900 mb-1">Space Complexity</h4>
+                        <p className="text-green-800 font-mono">{optimalSolution.complexity?.space || 'Unknown'}</p>
+                      </div>
+                    </div>
+
+                    {/* Optimal Code */}
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-2">Optimal Code</h4>
+                      <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                        <pre className="text-green-400 text-sm whitespace-pre-wrap">
+                          <code>{optimalSolution.code}</code>
+                        </pre>
+                      </div>
+                    </div>
+
+                    {/* Explanation */}
+                    {optimalSolution.explanation && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Why This Solution is Optimal</h4>
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <p className="text-green-800 text-sm">{optimalSolution.explanation}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Prompt to generate AI analysis if not available */}
+              {!optimalSolution && (
+                <div className="border-t border-gray-200 pt-6">
+                  <div className="text-center py-6 bg-gray-50 rounded-lg">
+                    <div className="text-blue-600 text-xl mb-3">🤖</div>
+                    <h4 className="text-lg font-medium text-gray-900 mb-2">Want an AI-Generated Optimal Solution?</h4>
+                    <p className="text-gray-600 mb-4">Click on the Analysis tab to generate an AI-powered analysis and optimal solution for this problem.</p>
+                    <button
+                      onClick={() => setActiveTab('analysis')}
+                      className="btn-primary"
+                    >
+                      Go to Analysis Tab
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -565,17 +675,164 @@ int main() {
 
           {activeTab === 'analysis' && (
             <div className="space-y-6">
-              <div className="text-center py-8">
-                <div className="text-blue-600 text-xl mb-4">📊</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Problem Analysis</h3>
-                <p className="text-gray-600 mb-4">Get AI-powered analysis of complexity and alternative approaches</p>
-                <button
-                  onClick={() => navigate(`/problems/${id}/analysis`)}
-                  className="btn-primary"
-                >
-                  View Full Analysis
-                </button>
-              </div>
+              {!aiAnalysis ? (
+                <div className="text-center py-8">
+                  <div className="text-blue-600 text-xl mb-4">📊</div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Problem Analysis</h3>
+                  <p className="text-gray-600 mb-4">Get AI-powered analysis of complexity, alternative approaches, and optimal solution</p>
+                  <button
+                    onClick={generateAIAnalysis}
+                    disabled={generatingAnalysis}
+                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {generatingAnalysis ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Generating Analysis...
+                      </>
+                    ) : (
+                      'Generate AI Analysis'
+                    )}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold text-gray-900">AI Problem Analysis</h3>
+                    <button
+                      onClick={() => {
+                        setAiAnalysis(null);
+                        setOptimalSolution(null);
+                      }}
+                      className="btn-secondary"
+                    >
+                      Generate New Analysis
+                    </button>
+                  </div>
+                  
+                  {/* AI Analysis Content */}
+                  {aiAnalysis && (
+                    <div className="bg-white rounded-lg shadow-md p-6">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Problem Analysis</h4>
+                      <div className="space-y-4">
+                        {/* Complexity Analysis */}
+                        {aiAnalysis.complexity && (
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-2">Complexity Analysis</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-blue-50 rounded-lg p-4">
+                                <span className="font-medium text-blue-900">Time Complexity:</span>
+                                <p className="text-blue-800 font-mono mt-1">{aiAnalysis.complexity.timeComplexity}</p>
+                              </div>
+                              <div className="bg-green-50 rounded-lg p-4">
+                                <span className="font-medium text-green-900">Space Complexity:</span>
+                                <p className="text-green-800 font-mono mt-1">{aiAnalysis.complexity.spaceComplexity}</p>
+                              </div>
+                            </div>
+                            {aiAnalysis.complexity.explanation && (
+                              <div className="mt-3 bg-gray-50 rounded-lg p-4">
+                                <span className="font-medium text-gray-900">Explanation:</span>
+                                <p className="text-gray-700 mt-1">{aiAnalysis.complexity.explanation}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Alternative Approaches */}
+                        {aiAnalysis.approaches && aiAnalysis.approaches.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-2">Alternative Approaches</h5>
+                            <div className="space-y-3">
+                              {aiAnalysis.approaches.map((approach: any, index: number) => (
+                                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                                  <h6 className="font-medium text-gray-900 mb-2">{approach.name}</h6>
+                                  <p className="text-gray-700 mb-3">{approach.description}</p>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                      <span className="font-medium text-gray-700">Time:</span>
+                                      <span className="ml-2 font-mono">{approach.timeComplexity}</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-gray-700">Space:</span>
+                                      <span className="ml-2 font-mono">{approach.spaceComplexity}</span>
+                                    </div>
+                                  </div>
+                                  <div className="mt-3 grid grid-cols-2 gap-4">
+                                    <div>
+                                      <span className="font-medium text-green-700">Pros:</span>
+                                      <ul className="text-sm text-green-600 mt-1">
+                                        {approach.pros.map((pro: string, i: number) => (
+                                          <li key={i}>• {pro}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium text-red-700">Cons:</span>
+                                      <ul className="text-sm text-red-600 mt-1">
+                                        {approach.cons.map((con: string, i: number) => (
+                                          <li key={i}>• {con}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Learning Points */}
+                        {aiAnalysis.learningPoints && aiAnalysis.learningPoints.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-2">Learning Points</h5>
+                            <div className="bg-yellow-50 rounded-lg p-4">
+                              <ul className="space-y-2">
+                                {aiAnalysis.learningPoints.map((point: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-yellow-600 mr-2">•</span>
+                                    <span className="text-yellow-800">{point}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Best Practices */}
+                        {aiAnalysis.bestPractices && aiAnalysis.bestPractices.length > 0 && (
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-2">Best Practices</h5>
+                            <div className="bg-green-50 rounded-lg p-4">
+                              <ul className="space-y-2">
+                                {aiAnalysis.bestPractices.map((practice: string, index: number) => (
+                                  <li key={index} className="flex items-start">
+                                    <span className="text-green-600 mr-2">•</span>
+                                    <span className="text-green-800">{practice}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optimal Solution Notice */}
+                  {optimalSolution && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-green-800 font-medium">
+                          Optimal solution generated! Check the Solution tab to view it.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -201,6 +201,11 @@ const Analytics: React.FC = () => {
           <div className="flex items-center space-x-3 mb-2">
             <ChartBarIcon className="h-8 w-8 text-indigo-600" />
             <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+            {user?.email === 'demo@codecoach.com' && (
+              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Demo Account
+              </span>
+            )}
           </div>
           <p className="text-gray-600">Track your coding progress and performance metrics</p>
         </div>
@@ -503,6 +508,28 @@ const Analytics: React.FC = () => {
             ))}
           </div>
         </div>
+
+        {/* Demo User Note */}
+        {user?.email === 'demo@codecoach.com' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <LightBulbIcon className="h-6 w-6 text-blue-600" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-lg font-medium text-blue-900">Demo Account Information</h3>
+                <p className="text-blue-700 mt-2">
+                  This is a demo account showcasing the analytics features. The data shown represents realistic 
+                  progress for a dedicated learner. In a real account, this data would be generated from your 
+                  actual problem-solving activities and submissions.
+                </p>
+                <div className="mt-3 text-sm text-blue-600">
+                  <strong>Demo Credentials:</strong> demo@codecoach.com / demo123
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

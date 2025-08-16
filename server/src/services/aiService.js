@@ -37,8 +37,8 @@ const generateCodeReview = async ({ code, language, problemDescription, testResu
   }
 
   try {
-    const failedTests = testResults.filter(test => !test.passed);
-    const passedTests = testResults.filter(test => test.passed);
+    const failedTests = testResults.filter(test => test.status !== 'passed');
+    const passedTests = testResults.filter(test => test.status === 'passed');
     
     const prompt = `
 You are an expert programming mentor reviewing a coding solution. Please provide a comprehensive code review.
@@ -61,15 +61,15 @@ ${failedTests.length > 0 ? `
 FAILED TEST CASES:
 ${failedTests.map((test, i) => `
 Test ${i + 1}:
-Input: ${test.input}
+Input: ${test.input || 'N/A'}
 Expected: ${test.expectedOutput}
-Actual: ${test.actualOutput || 'No output'}
+Actual: ${test.output || 'No output'}
 Error: ${test.error || 'N/A'}
 `).join('')}` : ''}
 
 ${optimalSolution && optimalSolution.code ? `
 OPTIMAL SOLUTION COMPARISON:
-The AI has generated and tested an optimal solution for comparison:
+Here is an optimal solution for this problem in ${language}:
 
 OPTIMAL SOLUTION CODE:
 \`\`\`${language}
@@ -80,7 +80,6 @@ OPTIMAL SOLUTION ANALYSIS:
 - Approach: ${optimalSolution.approach || 'N/A'}
 - Time Complexity: ${optimalSolution.complexity?.time || 'Unknown'}
 - Space Complexity: ${optimalSolution.complexity?.space || 'Unknown'}
-- Test Results: ${optimalSolution.allPassed ? 'All tests passed' : 'Some tests failed'}
 - Explanation: ${optimalSolution.explanation || 'N/A'}
 
 Please compare the user's solution with this optimal approach and provide specific recommendations for improvement.
@@ -389,7 +388,11 @@ Format as JSON array of strings:
 
 // Generate optimal solution and test it
 const generateOptimalSolution = async (problemDescription, language) => {
+  console.log('🚀 Starting optimal solution generation for:', language);
+  console.log('🔑 Gemini API Key configured:', !!GEMINI_API_KEY);
+  
   if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
+    console.warn('⚠️ Gemini API key not configured, providing basic fallback');
     return {
       code: null,
       explanation: 'AI solution generation is not available because the Gemini API key is not configured. To enable AI-generated optimal solutions, please add your Gemini API key to the environment variables.',
@@ -400,7 +403,7 @@ const generateOptimalSolution = async (problemDescription, language) => {
 
   try {
     const prompt = `
-Generate an optimal solution for this coding problem in ${language}.
+Generate an optimal, production-ready solution for this coding problem in ${language}.
 
 PROBLEM DESCRIPTION:
 ${problemDescription}
@@ -408,27 +411,33 @@ ${problemDescription}
 Requirements:
 1. Provide the most efficient solution possible
 2. Include proper time and space complexity analysis
-3. Add comments explaining the approach
-4. Ensure the code is production-ready and follows best practices
+3. Add clear, concise comments explaining the approach
+4. Ensure the code follows ${language} best practices and conventions
+5. Make the code readable and maintainable
+6. Handle edge cases appropriately
+7. Use the most suitable data structures and algorithms
+
+IMPORTANT: The code must be syntactically correct ${language} code that can be executed.
 
 Format your response as JSON:
 {
-  "code": "The complete solution code",
-  "explanation": "Brief explanation of the approach",
+  "code": "The complete solution code in ${language}",
+  "explanation": "Brief explanation of the approach and why it's optimal",
   "complexity": {
-    "time": "O(n)",
-    "space": "O(1)"
+    "time": "O(n) - detailed explanation",
+    "space": "O(1) - detailed explanation"
   },
-  "approach": "Detailed explanation of the algorithm"
+  "approach": "Detailed explanation of the algorithm and data structures used"
 }
 `;
 
+    console.log('📤 Sending request to Gemini API...');
     const response = await axios.post(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       contents: [
         {
           parts: [
             {
-              text: 'You are an expert programmer who provides optimal, efficient solutions. Always respond with valid JSON.'
+              text: `You are an expert ${language} programmer who provides optimal, efficient solutions. Always respond with valid JSON. The code must be syntactically correct ${language} code.`
             },
             {
               text: prompt
@@ -437,8 +446,8 @@ Format your response as JSON:
         }
       ],
       generationConfig: {
-        maxOutputTokens: 2000,
-        temperature: 0.2
+        maxOutputTokens: 3000,
+        temperature: 0.1
       }
     }, {
       headers: {
@@ -446,9 +455,84 @@ Format your response as JSON:
       }
     });
 
-    const solution = JSON.parse(response.data.candidates[0].content.parts[0].text);
+    console.log('📥 Received response from Gemini API');
+    const responseText = response.data.candidates[0].content.parts[0].text;
+    console.log('🔍 Raw response length:', responseText.length);
+    
+    // Clean the response to extract JSON
+    let cleanResponse = responseText.trim();
+    
+    // Remove any markdown code blocks
+    if (cleanResponse.includes('```json')) {
+      cleanResponse = cleanResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (cleanResponse.includes('```')) {
+      cleanResponse = cleanResponse.replace(/```\n?/g, '');
+    }
+    
+    // Find JSON object
+    const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No valid JSON found in response');
+    }
+    
+    cleanResponse = jsonMatch[0];
+    console.log('🔍 Cleaned response length:', cleanResponse.length);
+    
+    let solution;
+    try {
+      solution = JSON.parse(cleanResponse);
+      console.log('🔍 Parsed solution:', !!solution);
+      console.log('📝 Solution code present:', !!solution.code);
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError.message);
+      console.log('🔍 Attempting to fix malformed JSON...');
+      
+      // Try to fix common JSON issues
+      try {
+        // Remove any trailing commas
+        let fixedResponse = cleanResponse.replace(/,(\s*[}\]])/g, '$1');
+        
+        // Try to find the end of the JSON object
+        let braceCount = 0;
+        let endIndex = 0;
+        for (let i = 0; i < fixedResponse.length; i++) {
+          if (fixedResponse[i] === '{') braceCount++;
+          if (fixedResponse[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              endIndex = i + 1;
+              break;
+            }
+          }
+        }
+        
+        if (endIndex > 0) {
+          fixedResponse = fixedResponse.substring(0, endIndex);
+          console.log('🔧 Fixed JSON length:', fixedResponse.length);
+          solution = JSON.parse(fixedResponse);
+          console.log('✅ Successfully parsed fixed JSON');
+        } else {
+          throw new Error('Could not find valid JSON structure');
+        }
+      } catch (fixError) {
+        console.error('❌ JSON fix attempt failed:', fixError.message);
+        throw new Error('Failed to parse optimal solution response');
+      }
+    }
+    
+    // Clean and validate the code
+    let cleanCode = solution.code || '';
+    
+    // Remove any markdown formatting if present
+    if (cleanCode.includes('```')) {
+      cleanCode = cleanCode.replace(/```[a-z]*\n?/g, '').replace(/```\n?/g, '');
+    }
+    
+    // Ensure the code is properly formatted
+    cleanCode = cleanCode.trim();
+    
     return {
-      code: solution.code || '',
+      code: cleanCode,
       explanation: solution.explanation || '',
       complexity: solution.complexity || { time: 'Unknown', space: 'Unknown' },
       approach: solution.approach || ''
