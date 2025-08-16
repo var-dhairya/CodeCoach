@@ -49,18 +49,35 @@ const app = express();
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        process.env.FRONTEND_URL || 'https://code-coach-client.vercel.app' // Frontend URL from environment
+        process.env.FRONTEND_URL || 'https://code-coach-client.vercel.app', // Frontend URL from environment
+        'https://code-coach-client.vercel.app' // Explicit frontend URL
       ]
     : ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Handle preflight requests
+app.options('*', cors());
+
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  minPoolSize: 1,
+  maxIdleTimeMS: 30000,
+  retryWrites: true,
+  w: 'majority'
+})
   .then(() => {
     console.log('✅ Connected to MongoDB Atlas');
     
@@ -74,6 +91,23 @@ mongoose.connect(process.env.MONGODB_URI)
       process.exit(1);
     }
   });
+
+// Monitor MongoDB connection
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB connection established');
+});
+
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB connection disconnected');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('🔄 MongoDB connection reestablished');
+});
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -95,7 +129,7 @@ app.get('/', (req, res) => {
     message: '🚀 CodeCoach API is running!',
     version: '1.0.0',
     status: 'active',
-    database: 'connected',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     endpoints: {
       auth: '/api/auth',
       health: '/api/health',
