@@ -535,7 +535,7 @@ class KattisImportService {
       approach: this.generateApproach(title, description, topic),
       timeComplexity: this.estimateTimeComplexity(description, topic),
       spaceComplexity: this.estimateSpaceComplexity(description, topic),
-      code: this.generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs),
+              code: this.generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs, inputFormat),
       explanation: this.generateExplanation(title, description, topic, sampleInputs, sampleOutputs)
     };
     
@@ -625,7 +625,7 @@ class KattisImportService {
   }
 
   // Generate code template
-  generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs) {
+  generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs, inputFormat) {
     const hasMultipleTestCases = sampleInputs.length > 1;
     const inputPattern = this.analyzeInputPattern(sampleInputs);
     
