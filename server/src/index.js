@@ -65,39 +65,39 @@ app.use(express.urlencoded({ extended: true }));
 // Handle preflight requests
 app.options('*', cors());
 
-// Connect to MongoDB with retry logic
-const connectWithRetry = async (retries = 3) => {
+// Lazy MongoDB connection - connect only when needed
+let mongooseConnection = null;
+
+const getMongoConnection = async () => {
+  if (mongooseConnection && mongoose.connection.readyState === 1) {
+    return mongooseConnection;
+  }
+  
   try {
+    console.log('🔄 Establishing MongoDB connection...');
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 3000, // Much faster
-      socketTimeoutMS: 8000, // Under Vercel's 10s limit
-      connectTimeoutMS: 5000, // Faster connection
-      maxPoolSize: 1, // Single connection for serverless
-      minPoolSize: 0, // No minimum pool
-      maxIdleTimeMS: 5000, // Faster idle cleanup
+      serverSelectionTimeoutMS: 3000,
+      socketTimeoutMS: 8000,
+      connectTimeoutMS: 5000,
+      maxPoolSize: 1,
+      minPoolSize: 0,
+      maxIdleTimeMS: 5000,
       retryWrites: true,
       w: 'majority',
-      bufferCommands: false, // Disable buffering
-      bufferMaxEntries: 0 // No buffering
+      bufferCommands: false,
+      bufferMaxEntries: 0
     });
-    console.log('✅ Connected to MongoDB Atlas');
+    
+    mongooseConnection = mongoose.connection;
+    console.log('✅ MongoDB connection established');
+    return mongooseConnection;
   } catch (error) {
-    console.error(`❌ MongoDB connection attempt ${4 - retries} failed:`, error.message);
-    if (retries > 1) {
-      console.log(`🔄 Retrying in 2 seconds... (${retries - 1} attempts left)`);
-      setTimeout(() => connectWithRetry(retries - 1), 2000);
-    } else {
-      console.error('❌ MongoDB connection failed after all retries');
-      if (process.env.NODE_ENV !== 'production') {
-        process.exit(1);
-      }
-    }
+    console.error('❌ MongoDB connection failed:', error.message);
+    throw error;
   }
 };
-
-connectWithRetry();
 
 // Monitor MongoDB connection
 mongoose.connection.on('connected', () => {
@@ -110,10 +110,12 @@ mongoose.connection.on('error', (err) => {
 
 mongoose.connection.on('disconnected', () => {
   console.log('⚠️ MongoDB connection disconnected');
+  mongooseConnection = null;
 });
 
 mongoose.connection.on('reconnected', () => {
   console.log('🔄 MongoDB connection reestablished');
+  mongooseConnection = mongoose.connection;
 });
 
 // Import routes
@@ -131,31 +133,61 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/import', importRoutes);
 
 // Basic route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: '🚀 CodeCoach API is running!',
-    version: '1.0.0',
-    status: 'active',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    endpoints: {
-      auth: '/api/auth',
-      health: '/api/health',
-      problems: '/api/problems',
-      submissions: '/api/submissions',
-      analytics: '/api/analytics',
-      import: '/api/import'
-    }
-  });
+app.get('/', async (req, res) => {
+  try {
+    const connection = await getMongoConnection();
+    res.json({ 
+      message: '🚀 CodeCoach API is running!',
+      version: '1.0.0',
+      status: 'active',
+      database: connection.readyState === 1 ? 'connected' : 'disconnected',
+      endpoints: {
+        auth: '/api/auth',
+        health: '/api/health',
+        problems: '/api/problems',
+        submissions: '/api/submissions',
+        analytics: '/api/analytics',
+        import: '/api/import'
+      }
+    });
+  } catch (error) {
+    res.json({ 
+      message: '🚀 CodeCoach API is running!',
+      version: '1.0.0',
+      status: 'active',
+      database: 'disconnected',
+      error: error.message,
+      endpoints: {
+        auth: '/api/auth',
+        health: '/api/health',
+        problems: '/api/problems',
+        submissions: '/api/submissions',
+        analytics: '/api/analytics',
+        import: '/api/import'
+      }
+    });
+  }
 });
 
 // Health check route
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    const connection = await getMongoConnection();
+    res.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: connection.readyState === 1 ? 'connected' : 'disconnected'
+    });
+  } catch (error) {
+    res.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
 });
 
 // Error handling middleware
