@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { ensureDbConnection } = require('../middleware/database');
 const {
   register,
   login,
@@ -10,12 +11,12 @@ const {
 } = require('../controllers/authController');
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/logout', logout);
+router.post('/register', ensureDbConnection, register);
+router.post('/login', ensureDbConnection, login);
+router.post('/logout', ensureDbConnection, logout);
 
 // Protected routes
-router.get('/profile', protect, getProfile);
-router.put('/profile', protect, updateProfile);
+router.get('/profile', ensureDbConnection, protect, getProfile);
+router.put('/profile', ensureDbConnection, protect, updateProfile);
 
 module.exports = router; 
