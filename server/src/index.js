@@ -65,32 +65,39 @@ app.use(express.urlencoded({ extended: true }));
 // Handle preflight requests
 app.options('*', cors());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  connectTimeoutMS: 10000,
-  maxPoolSize: 10,
-  minPoolSize: 1,
-  maxIdleTimeMS: 30000,
-  retryWrites: true,
-  w: 'majority'
-})
-  .then(() => {
+// Connect to MongoDB with retry logic
+const connectWithRetry = async (retries = 3) => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 3000, // Much faster
+      socketTimeoutMS: 8000, // Under Vercel's 10s limit
+      connectTimeoutMS: 5000, // Faster connection
+      maxPoolSize: 1, // Single connection for serverless
+      minPoolSize: 0, // No minimum pool
+      maxIdleTimeMS: 5000, // Faster idle cleanup
+      retryWrites: true,
+      w: 'majority',
+      bufferCommands: false, // Disable buffering
+      bufferMaxEntries: 0 // No buffering
+    });
     console.log('✅ Connected to MongoDB Atlas');
-    
-    // Demo data setup (commented out for now)
-    // console.log('Demo data will be created on first login');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error);
-    // Don't exit in serverless environment
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
+  } catch (error) {
+    console.error(`❌ MongoDB connection attempt ${4 - retries} failed:`, error.message);
+    if (retries > 1) {
+      console.log(`🔄 Retrying in 2 seconds... (${retries - 1} attempts left)`);
+      setTimeout(() => connectWithRetry(retries - 1), 2000);
+    } else {
+      console.error('❌ MongoDB connection failed after all retries');
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
     }
-  });
+  }
+};
+
+connectWithRetry();
 
 // Monitor MongoDB connection
 mongoose.connection.on('connected', () => {
