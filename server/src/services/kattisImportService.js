@@ -535,7 +535,7 @@ class KattisImportService {
       approach: this.generateApproach(title, description, topic),
       timeComplexity: this.estimateTimeComplexity(description, topic),
       spaceComplexity: this.estimateSpaceComplexity(description, topic),
-              code: this.generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs, inputFormat),
+      code: this.generateCodeTemplate(title, description, topic, sampleInputs, sampleOutputs, inputFormat),
       explanation: this.generateExplanation(title, description, topic, sampleInputs, sampleOutputs)
     };
     
