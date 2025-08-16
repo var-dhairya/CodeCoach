@@ -4,13 +4,22 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const path = require('path');
 
-// Load environment variables with explicit path
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
+// Simple environment loading
+console.log('🔍 Current working directory:', process.cwd());
+console.log('🔍 __dirname:', __dirname);
 
-// Alternative: Load from current working directory
-if (!process.env.MONGODB_URI) {
-  dotenv.config();
-}
+// Try to load .env from multiple locations
+const envResult1 = dotenv.config({ path: '.env' });
+console.log('📁 Tried .env:', envResult1.parsed ? 'SUCCESS' : 'FAILED');
+
+const envResult2 = dotenv.config({ path: path.join(__dirname, '..', '.env') });
+console.log('📁 Tried ../.env:', envResult2.parsed ? 'SUCCESS' : 'FAILED');
+
+// Debug: Check what was loaded
+console.log('🔧 After loading .env files:');
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
 
 // Check required environment variables
 const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET', 'GEMINI_API_KEY'];
@@ -26,7 +35,7 @@ if (missingEnvVars.length > 0) {
 }
 
 // Debug environment variables
-console.log('🔧 Environment variables:');
+console.log('🔧 Final environment variables:');
 console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
 console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
@@ -34,15 +43,13 @@ console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Set' : 'Not set');
 console.log('PORT:', process.env.PORT || '5000 (default)');
 console.log('NODE_ENV:', process.env.NODE_ENV || 'development (default)');
 
-// Force redeploy with new MongoDB URI: mongodb+srv://coder:coder@12@cluster0.3wxoqpf.mongodb.net/codecoach
 const app = express();
 
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        process.env.FRONTEND_URL || 'https://code-coach-client.vercel.app', // Frontend URL from environment
-        'https://code-coach-client.vercel.app' // Your actual frontend URL
+        process.env.FRONTEND_URL || 'https://code-coach-client.vercel.app' // Frontend URL from environment
       ]
     : ['http://localhost:3000'],
   credentials: true,

@@ -218,7 +218,12 @@ const sampleProblems = [
 async function seedProblems() {
   try {
     // Connect to MongoDB
-    const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://spare6957:spare6957@cluster0.3wxoqpf.mongodb.net/codecoach';
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      console.error('❌ MONGODB_URI environment variable is required');
+      process.exit(1);
+    }
+    
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
 
