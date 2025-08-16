@@ -1,0 +1,10 @@
+[33m289cbde[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Trigger Vercel deployment
+[33m9d8fe65[m Fix JavaScript syntax error in kattisImportService.js - resolves Vercel deployment failure
+[33mf67f5e0[m final-fixes
+[33m77e2116[m erronous
+[33maf451ef[m local, remote working
+[33ma162306[m Force redeploy with new MongoDB URI
+[33m1d0be98[m Fix MongoDB URI with correct cluster name (cluster0.3wxoqpf)
+[33m2de7c2b[m Update MongoDB credentials to new Atlas database (coder:coder@12)
+[33mdd2c74f[m Update all configuration files with correct production URLs
+[33m2c8f3a1[m Fix CORS configuration for production deployment
