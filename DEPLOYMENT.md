@@ -32,9 +32,9 @@ Deploy only the frontend and use a different backend service.
 
 2. **Configure environment variables:**
    ```bash
-   MONGODB_URI=@mongodb_uri
-   JWT_SECRET=@jwt_secret
-   GEMINI_API_KEY=@gemini_api_key
+   MONGODB_URI=mongodb+srv://coder:coder@12@cluster.mongodb.net/codecoach
+   JWT_SECRET=your_jwt_secret_key_here_make_it_long_and_random
+   GEMINI_API_KEY=your_gemini_api_key_here
    FRONTEND_URL=https://code-coach-client.vercel.app
    NODE_ENV=production
    ```
@@ -79,8 +79,9 @@ After both projects are deployed, update the URLs in your environment variables 
 - Check Vercel build logs for specific errors
 
 ### **Database Connection**
-- Ensure MongoDB URI is correct
+- Ensure MongoDB URI is correct: `mongodb+srv://coder:coder@12@cluster.mongodb.net/codecoach`
 - Check network access settings in MongoDB Atlas
+- Verify username and password are correct
 
 ## 📚 **Useful Links**
 

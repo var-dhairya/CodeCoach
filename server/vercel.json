@@ -22,7 +22,7 @@
     }
   },
   "env": {
-    "MONGODB_URI": "@mongodb_uri",
+    "MONGODB_URI": "mongodb+srv://coder:coder@12@cluster.mongodb.net/codecoach",
     "JWT_SECRET": "@jwt_secret",
     "GEMINI_API_KEY": "@gemini_api_key",
     "FRONTEND_URL": "https://code-coach-client.vercel.app",
